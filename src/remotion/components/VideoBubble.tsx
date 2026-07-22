@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
+import {Video} from '@remotion/media';
 import {
-  OffthreadVideo,
   Sequence,
   continueRender,
   delayRender,
@@ -106,15 +106,15 @@ export const VideoBubble: React.FC<{
       >
         {playing ? (
           <Sequence from={playFromFrame} layout="none">
-            <OffthreadVideo
+            <Video
               src={src}
               muted={false}
+              objectFit="cover"
               style={{
                 position: 'absolute',
                 inset: 0,
                 width: '100%',
                 height: '100%',
-                objectFit: 'cover',
               }}
             />
           </Sequence>

@@ -1,7 +1,10 @@
 'use client';
 
 import React, {useEffect, useRef, useState} from 'react';
+import {canRenderMediaOnWeb, renderMediaOnWeb} from '@remotion/web-renderer';
 import type {ConversationProps} from '../lib/types';
+import {FPS, getTimeline, VIDEO_HEIGHT, VIDEO_WIDTH} from '../lib/timing';
+import {ConversationVideo} from '../remotion/ConversationVideo';
 
 type Props = {
   props: ConversationProps;
@@ -10,70 +13,83 @@ type Props = {
 type RenderState =
   | {phase: 'idle'}
   | {phase: 'rendering'; progress: number}
-  | {phase: 'done'; url: string}
+  | {phase: 'done'; url: string; filename: string}
+  | {phase: 'cancelled'}
   | {phase: 'error'; error: string};
 
-/** Defensive parse of GET /api/render/<id> — the exact shape is owned by the API agent. */
-type RenderStatus = {
-  status?: string;
-  progress?: number;
-  url?: string;
-  error?: string;
-};
+const UNSUPPORTED_MESSAGE =
+  'In-browser rendering is not supported in this browser. Use the latest Chrome, Edge or Firefox.';
 
 export const RenderPanel: React.FC<Props> = ({props}) => {
   const [state, setState] = useState<RenderState>({phase: 'idle'});
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+  const urlRef = useRef<string | null>(null);
 
-  const stopPolling = () => {
-    if (pollRef.current) {
-      clearInterval(pollRef.current);
-      pollRef.current = null;
+  const revokeUrl = () => {
+    if (urlRef.current) {
+      URL.revokeObjectURL(urlRef.current);
+      urlRef.current = null;
     }
   };
 
-  useEffect(() => stopPolling, []);
+  useEffect(
+    () => () => {
+      abortRef.current?.abort();
+      revokeUrl();
+    },
+    [],
+  );
+
+  const cancelRender = () => {
+    abortRef.current?.abort();
+  };
 
   const startRender = async () => {
-    stopPolling();
-    setState({phase: 'rendering', progress: 0});
-    try {
-      const res = await fetch('/api/render', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(props),
-      });
-      if (!res.ok) {
-        throw new Error(`Render request failed (${res.status})`);
-      }
-      const data = (await res.json()) as {id?: string};
-      if (!data.id) {
-        throw new Error('Render response did not include an id');
-      }
-      const id = data.id;
+    const capability = await canRenderMediaOnWeb({
+      width: VIDEO_WIDTH,
+      height: VIDEO_HEIGHT,
+      videoBitrate: 'high',
+    });
+    if (!capability.canRender) {
+      setState({phase: 'error', error: UNSUPPORTED_MESSAGE});
+      return;
+    }
 
-      pollRef.current = setInterval(async () => {
-        try {
-          const statusRes = await fetch(`/api/render/${id}`);
-          if (!statusRes.ok) return; // transient — keep polling
-          const status = (await statusRes.json()) as RenderStatus;
-          if (status.status === 'done' && status.url) {
-            stopPolling();
-            setState({phase: 'done', url: status.url});
-          } else if (status.status === 'error') {
-            stopPolling();
-            setState({phase: 'error', error: status.error ?? 'Render failed'});
-          } else {
-            setState({
-              phase: 'rendering',
-              progress: Math.min(Math.max(status.progress ?? 0, 0), 1),
-            });
-          }
-        } catch {
-          // network hiccup — keep polling
-        }
-      }, 1000);
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    revokeUrl();
+    setState({phase: 'rendering', progress: 0});
+
+    try {
+      const result = await renderMediaOnWeb({
+        composition: {
+          id: 'ConversationVideo',
+          component: ConversationVideo,
+          durationInFrames: getTimeline(props).totalFrames,
+          fps: FPS,
+          width: VIDEO_WIDTH,
+          height: VIDEO_HEIGHT,
+          defaultProps: props,
+        },
+        inputProps: props,
+        videoBitrate: 'high',
+        onProgress: ({progress}) => {
+          setState({phase: 'rendering', progress});
+        },
+        signal: controller.signal,
+      });
+
+      const blob = await result.getBlob();
+      const url = URL.createObjectURL(blob);
+      urlRef.current = url;
+      const filename = `cantina-text-${Date.now()}.mp4`;
+      setState({phase: 'done', url, filename});
     } catch (err) {
+      if (controller.signal.aborted) {
+        setState({phase: 'cancelled'});
+        return;
+      }
       setState({
         phase: 'error',
         error: err instanceof Error ? err.message : 'Render failed',
@@ -87,7 +103,7 @@ export const RenderPanel: React.FC<Props> = ({props}) => {
         <span className="section-number">6</span>
         <div>
           <h2>Render</h2>
-          <p>Export the final 1080×1920 MP4.</p>
+          <p>Export the final 1080×1920 MP4 — rendered in your browser.</p>
         </div>
       </header>
 
@@ -109,16 +125,34 @@ export const RenderPanel: React.FC<Props> = ({props}) => {
             />
           </div>
           <span className="section-note">{Math.round(state.progress * 100)}%</span>
+          <button
+            type="button"
+            className="btn btn--ghost"
+            onClick={cancelRender}
+          >
+            Cancel
+          </button>
+          <span className="section-note">
+            Keep this tab visible — rendering in your browser
+          </span>
         </div>
       ) : null}
 
       {state.phase === 'done' ? (
         <div className="render-result">
-          <a className="btn btn--primary btn--big" href={state.url} download>
+          <a
+            className="btn btn--primary btn--big"
+            href={state.url}
+            download={state.filename}
+          >
             ⬇ Download MP4
           </a>
           <video className="render-video" src={state.url} controls playsInline />
         </div>
+      ) : null}
+
+      {state.phase === 'cancelled' ? (
+        <p className="section-note">Render cancelled.</p>
       ) : null}
 
       {state.phase === 'error' ? (

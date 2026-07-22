@@ -41,12 +41,21 @@ Posting on TikTok? For maximum reach, attach the sound **inside TikTok** from th
   ```bash
   npx remotion render scripts/make-sample/entry.ts SampleClip public/sample/cantina-response.mp4
   ```
+- Hook library: drop `.mp4`/`.mov`/`.webm` clips into `public/hooks/`, then regenerate the manifest before deploying:
+  ```bash
+  node scripts/update-hooks-manifest.mjs
+  ```
+  This writes `public/hooks/manifest.json`, which the editor fetches at runtime — there is no server API to list clips.
 
 ### Architecture
 
-- `src/lib/types.ts` and `src/lib/timing.ts` are the shared contract: `ConversationProps`, `Message`, and the frame-accurate timeline (`getTimeline`) drive the Remotion composition, the live preview, and the render API identically.
+The app runs **fully client-side** — no server APIs, no server storage. It deploys to Vercel (or any static/edge host) as-is.
+
+- **Uploads never leave the browser.** Picked videos become `blob:` object URLs (`URL.createObjectURL`) that the preview and renderer use directly. Duration is measured client-side via a temporary `<video>` element. Object URLs intentionally don't survive reloads.
+- **Rendering happens in the browser** via `@remotion/web-renderer` (WebCodecs). The finished mp4 is handed to the user as a blob URL download — nothing is rendered or stored on a server.
+- `src/lib/types.ts` and `src/lib/timing.ts` are the shared contract: `ConversationProps`, `Message`, and the frame-accurate timeline (`getTimeline`) drive the Remotion composition, the live preview, and the client-side render identically.
 - `src/remotion/` — the `ConversationVideo` composition (iOS Messages dark-mode look: typing indicator, keyboard, read receipts).
-- `src/app/` — the editor UI, upload endpoint, and render API.
+- `src/app/` — the editor UI only (no API routes).
 - `public/sounds/` — `gymnopedie-piano.mp3`, the viral TikTok audio (the only punchline sound).
 - `public/sample/` — the placeholder Cantina clip used by presets.
-- `public/uploads/` — where clipper uploads land.
+- `public/hooks/` — the hook clip library, indexed by `manifest.json` (see above).

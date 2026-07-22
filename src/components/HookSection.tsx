@@ -15,25 +15,19 @@ type LibraryClip = {
 
 const ACCEPT = 'video/*';
 
-/** Measures the duration of a local video file via a temporary <video> element. */
-const measureFileDuration = (file: File): Promise<number> =>
+/** Measures the duration of a video at an object URL via a temporary <video>. */
+const measureFileDuration = (url: string): Promise<number> =>
   new Promise((resolve, reject) => {
-    const url = URL.createObjectURL(file);
     const video = document.createElement('video');
     video.preload = 'metadata';
     video.onloadedmetadata = () => {
-      const duration = video.duration;
-      URL.revokeObjectURL(url);
-      if (Number.isFinite(duration) && duration > 0) {
-        resolve(duration);
+      if (Number.isFinite(video.duration) && video.duration > 0) {
+        resolve(video.duration);
       } else {
         reject(new Error('Could not read video duration'));
       }
     };
-    video.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error('Could not read this video file'));
-    };
+    video.onerror = () => reject(new Error('Could not read this video file'));
     video.src = url;
   });
 
@@ -77,7 +71,7 @@ export const HookSection: React.FC<Props> = ({hook, setHook}) => {
 
   useEffect(() => {
     let cancelled = false;
-    fetch('/api/hooks')
+    fetch('/hooks/manifest.json')
       .then((res) => (res.ok ? res.json() : {hooks: []}))
       .then((data: {hooks?: LibraryClip[]}) => {
         if (!cancelled) setLibrary(data.hooks ?? []);
@@ -115,22 +109,14 @@ export const HookSection: React.FC<Props> = ({hook, setHook}) => {
       }
       setBusy(true);
       setError(null);
+      const url = URL.createObjectURL(file);
       try {
-        const durationSec = await measureFileDuration(file);
-        const formData = new FormData();
-        formData.append('file', file);
-        const res = await fetch('/api/upload', {method: 'POST', body: formData});
-        if (!res.ok) {
-          throw new Error(`Upload failed (${res.status})`);
-        }
-        const data = (await res.json()) as {src?: string};
-        if (!data.src) {
-          throw new Error('Upload response did not include a src');
-        }
-        setHook({src: data.src, durationSec: round2(durationSec)});
+        const durationSec = await measureFileDuration(url);
+        setHook({src: url, durationSec: round2(durationSec)});
         setOpen(false);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Upload failed');
+        URL.revokeObjectURL(url);
+        setError(err instanceof Error ? err.message : 'Could not load this clip');
       } finally {
         setBusy(false);
       }
@@ -306,6 +292,7 @@ export const HookSection: React.FC<Props> = ({hook, setHook}) => {
               ) : (
                 <p className="section-note">
                   No clips yet — drop clips into <code>public/hooks</code> and
+                  run <code>node scripts/update-hooks-manifest.mjs</code>, then
                   they&apos;ll show up here.
                 </p>
               )}

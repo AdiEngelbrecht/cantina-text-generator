@@ -1,7 +1,7 @@
 import React from 'react';
+import {Audio} from '@remotion/media';
 import {
   AbsoluteFill,
-  Audio,
   Sequence,
   interpolate,
   spring,

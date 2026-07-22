@@ -10,25 +10,19 @@ type Props = {
 
 const ACCEPT = 'video/*';
 
-/** Measures the duration of a local video file via a temporary <video> element. */
-const measureDuration = (file: File): Promise<number> =>
+/** Measures the duration of a video at an object URL via a temporary <video>. */
+const measureDuration = (url: string): Promise<number> =>
   new Promise((resolve, reject) => {
-    const url = URL.createObjectURL(file);
     const video = document.createElement('video');
     video.preload = 'metadata';
     video.onloadedmetadata = () => {
-      const duration = video.duration;
-      URL.revokeObjectURL(url);
-      if (Number.isFinite(duration) && duration > 0) {
-        resolve(duration);
+      if (Number.isFinite(video.duration) && video.duration > 0) {
+        resolve(video.duration);
       } else {
         reject(new Error('Could not read video duration'));
       }
     };
-    video.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error('Could not read this video file'));
-    };
+    video.onerror = () => reject(new Error('Could not read this video file'));
     video.src = url;
   });
 
@@ -47,22 +41,14 @@ export const UploadSection: React.FC<Props> = ({onVideoReady, hasVideo}) => {
       }
       setBusy(true);
       setError(null);
+      const url = URL.createObjectURL(file);
       try {
-        const durationSec = await measureDuration(file);
-        const formData = new FormData();
-        formData.append('file', file);
-        const res = await fetch('/api/upload', {method: 'POST', body: formData});
-        if (!res.ok) {
-          throw new Error(`Upload failed (${res.status})`);
-        }
-        const data = (await res.json()) as {src?: string};
-        if (!data.src) {
-          throw new Error('Upload response did not include a src');
-        }
-        onVideoReady(data.src, Math.round(durationSec * 100) / 100);
+        const durationSec = await measureDuration(url);
+        onVideoReady(url, Math.round(durationSec * 100) / 100);
         setUploadedName(file.name);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Upload failed');
+        URL.revokeObjectURL(url);
+        setError(err instanceof Error ? err.message : 'Could not load this video');
       } finally {
         setBusy(false);
       }
@@ -112,7 +98,7 @@ export const UploadSection: React.FC<Props> = ({onVideoReady, hasVideo}) => {
           }}
         />
         {busy ? (
-          <span>Uploading…</span>
+          <span>Processing…</span>
         ) : (
           <>
             <span className="dropzone-title">
@@ -124,7 +110,7 @@ export const UploadSection: React.FC<Props> = ({onVideoReady, hasVideo}) => {
       </div>
 
       {uploadedName && !error ? (
-        <p className="section-note ok">Uploaded: {uploadedName}</p>
+        <p className="section-note ok">Loaded: {uploadedName}</p>
       ) : null}
       {error ? <p className="section-note error">{error}</p> : null}
     </section>

@@ -208,6 +208,10 @@ body {
   border-color: rgba(10, 132, 255, 0.5);
 }
 
+.btn--ghost {
+  background: transparent;
+}
+
 .btn--big {
   width: 100%;
   padding: 13px;

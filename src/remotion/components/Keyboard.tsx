@@ -201,7 +201,6 @@ const LetterKey: React.FC<LetterKeyProps> = ({
           bottom: KEY_HEIGHT + 4,
           left: '50%',
           transform: 'translateX(-50%)',
-          zIndex: 10,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',

@@ -109,7 +109,6 @@ export const Tapback: React.FC<{
         transform: `scale(${scale})`,
         transformOrigin: mine ? 'bottom right' : 'bottom left',
         opacity,
-        zIndex: 2,
       }}
     >
       <Glyph reaction={reaction} />

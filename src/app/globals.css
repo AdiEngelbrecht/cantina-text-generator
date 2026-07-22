@@ -1,0 +1,1054 @@
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #0a0a0f;
+  --surface: #14141c;
+  --surface-2: #1d1d28;
+  --border: #2a2a38;
+  --text: #f5f5f7;
+  --text-dim: #9a9aa8;
+  --accent: #2ee6a8;
+  --accent-hover: #63f0c4;
+  --accent-ink: #053021;
+  --danger: #ff453a;
+  --ok: #30d158;
+  --bubble-them: #26262f;
+  --radius: 14px;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background:
+    radial-gradient(1200px 600px at 80% -10%, rgba(46, 230, 168, 0.12), transparent),
+    var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+.page {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 24px 16px 80px;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 26px;
+  letter-spacing: -0.02em;
+}
+
+.page-header h1 .brand-word {
+  color: var(--accent);
+}
+
+.brand-lockup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.brand-logo {
+  height: 52px;
+  width: auto;
+  display: block;
+}
+
+.brand-logo--clipfarm {
+  height: 44px;
+}
+
+.brand-logo--cantina {
+  height: 44px;
+  width: 44px;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.brand-x {
+  color: var(--text-dim);
+  font-size: 20px;
+  font-weight: 300;
+}
+
+.page-header p {
+  margin: 4px 0 20px;
+  color: var(--text-dim);
+  font-size: 14px;
+}
+
+.page-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 440px;
+  gap: 20px;
+  align-items: start;
+}
+
+.editor-column {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+/* ---- Sections ---- */
+
+.editor-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+}
+
+.section-header {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.section-header h2 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.section-header p {
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  color: var(--text-dim);
+}
+
+.section-number {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 700;
+  font-size: 12.5px;
+  display: grid;
+  place-items: center;
+}
+
+.section-note {
+  font-size: 12.5px;
+  color: var(--text-dim);
+  margin: 8px 0 0;
+}
+
+.section-note.ok {
+  color: var(--ok);
+}
+
+.section-note.error {
+  color: var(--danger);
+}
+
+.field-label {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-dim);
+  margin: 10px 0 6px;
+}
+
+/* ---- Inputs & buttons ---- */
+
+.input {
+  width: 100%;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  padding: 9px 12px;
+  font-size: 14.5px;
+  outline: none;
+}
+
+.input:focus {
+  border-color: var(--accent);
+}
+
+.btn {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 9px 14px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--surface-2);
+  color: var(--text);
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.btn:hover {
+  border-color: var(--accent);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn--primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+.btn--primary:hover {
+  background: var(--accent-hover);
+}
+
+.btn--blue {
+  border-color: rgba(10, 132, 255, 0.5);
+}
+
+.btn--big {
+  width: 100%;
+  padding: 13px;
+  font-size: 15px;
+  text-align: center;
+  text-decoration: none;
+  display: block;
+}
+
+.btn-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.icon-btn {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 15px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+.icon-btn:hover {
+  border-color: var(--accent);
+}
+
+.icon-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.icon-btn--danger:hover {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+/* ---- Chips (presets) ---- */
+
+.preset-chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.chip {
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.chip:hover {
+  border-color: var(--accent);
+}
+
+.chip--active,
+.chip--active:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+/* ---- Upload ---- */
+
+.dropzone {
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 26px 16px;
+  text-align: center;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--surface-2);
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.dropzone:hover,
+.dropzone--dragging {
+  border-color: var(--accent);
+  background: rgba(46, 230, 168, 0.08);
+}
+
+.dropzone-title {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.dropzone-sub {
+  font-size: 12.5px;
+  color: var(--text-dim);
+}
+
+/* ---- Conversation chat canvas ---- */
+
+.chat-canvas {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.chat-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 0;
+  transition: opacity 0.15s;
+}
+
+.chat-row--me {
+  flex-direction: row-reverse;
+}
+
+.chat-row--dragging {
+  opacity: 0.35;
+}
+
+.drag-handle {
+  flex: none;
+  width: 24px;
+  height: 30px;
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 14px;
+  cursor: grab;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s;
+}
+
+.chat-row:hover .drag-handle,
+.drag-handle:focus-visible {
+  opacity: 1;
+}
+
+.drag-handle:hover {
+  color: var(--text);
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.bubble-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-width: 78%;
+  min-width: 120px;
+}
+
+.chat-row--me .bubble-wrap {
+  align-items: flex-end;
+}
+
+.chat-row--them .bubble-wrap {
+  align-items: flex-start;
+}
+
+.bubble {
+  width: 100%;
+  border: 1px solid transparent;
+  border-radius: 18px;
+  padding: 8px 14px;
+  font-size: 14.5px;
+  line-height: 1.35;
+  color: #fff;
+  outline: none;
+  transition: box-shadow 0.15s;
+}
+
+.bubble--me {
+  background: #0a84ff; /* keep the iMessage blue, not the brand accent */
+  border-bottom-right-radius: 4px;
+}
+
+.bubble--them {
+  background: var(--bubble-them);
+  border-bottom-left-radius: 4px;
+}
+
+.bubble::placeholder {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.bubble:focus {
+  box-shadow: 0 0 0 2px rgba(46, 230, 168, 0.55);
+}
+
+.sender-tag {
+  border: none;
+  background: transparent;
+  padding: 0 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-dim);
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.sender-tag:hover {
+  color: var(--accent-hover);
+  text-decoration: underline;
+}
+
+.delete-btn {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--text-dim);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.chat-row:hover .delete-btn,
+.delete-btn:focus-visible {
+  opacity: 1;
+}
+
+.delete-btn:hover {
+  color: var(--danger);
+  border: 1px solid var(--danger);
+}
+
+/* Drop indicator line between rows */
+
+.drop-indicator {
+  height: 3px;
+  border-radius: 999px;
+  background: var(--accent);
+  box-shadow: 0 0 8px rgba(46, 230, 168, 0.8);
+  margin: 1px 8px;
+  animation: drop-pulse 0.9s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes drop-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* Cantina video card */
+
+.video-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, rgba(46, 230, 168, 0.18), rgba(20, 140, 110, 0.18));
+  border: 1px solid rgba(46, 230, 168, 0.4);
+  border-radius: 16px;
+  padding: 10px 14px;
+  min-width: 220px;
+}
+
+.chat-row--me .video-card {
+  border-bottom-right-radius: 4px;
+}
+
+.chat-row--them .video-card {
+  border-bottom-left-radius: 4px;
+}
+
+.video-card-icon {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.35);
+  display: grid;
+  place-items: center;
+}
+
+.video-card-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.video-card-body strong {
+  font-size: 14px;
+}
+
+.video-card-body span {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+/* ---- Contact ---- */
+
+.segmented {
+  display: inline-flex;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 3px;
+  gap: 3px;
+}
+
+.segmented-btn {
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  padding: 7px 16px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.segmented-btn--active {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+/* ---- Sounds ---- */
+
+.sound-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.sound-chip {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 0;
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.sound-chip:hover {
+  border-color: var(--accent);
+}
+
+.sound-chip--active,
+.sound-chip--active:hover {
+  border-color: var(--accent);
+  background: rgba(46, 230, 168, 0.14);
+}
+
+.sound-chip-name {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  padding: 9px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sound-chip-play {
+  flex: none;
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 9px 12px;
+}
+
+.sound-chip-play:hover {
+  color: var(--accent-hover);
+}
+
+/* ---- Preview ---- */
+
+.preview-panel {
+  position: sticky;
+  top: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.preview-title {
+  margin: 0 0 10px;
+  font-size: 15px;
+  align-self: flex-start;
+}
+
+.preview-summary {
+  align-self: stretch;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+}
+
+.preview-summary-item {
+  font-size: 12.5px;
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* iPhone chassis around the live preview */
+
+.iphone-chassis {
+  position: relative;
+  border-radius: 55px;
+  padding: 14px;
+  background: linear-gradient(145deg, #3a3a3f 0%, #101013 30%, #000 55%, #1c1c21 100%);
+  border: 1px solid #4a4a52;
+  box-shadow:
+    inset 0 0 0 2px #000,
+    inset 0 1px 1px rgba(255, 255, 255, 0.22),
+    0 18px 40px rgba(0, 0, 0, 0.55),
+    0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.iphone-screen {
+  border-radius: 42px;
+  overflow: hidden;
+  background: #000;
+}
+
+/* Physical side buttons, poking out of the bezel */
+
+.iphone-btn {
+  position: absolute;
+  width: 3px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #55555e, #232329);
+}
+
+.iphone-btn--silent {
+  left: -4px;
+  top: 110px;
+  height: 22px;
+}
+
+.iphone-btn--vol-up {
+  left: -4px;
+  top: 155px;
+  height: 42px;
+}
+
+.iphone-btn--vol-down {
+  left: -4px;
+  top: 207px;
+  height: 42px;
+}
+
+.iphone-btn--power {
+  right: -4px;
+  top: 170px;
+  height: 64px;
+  background: linear-gradient(90deg, #232329, #55555e);
+}
+
+/* ---- Message pickers (emoji + tapback) ---- */
+
+.picker-root {
+  position: relative;
+  flex: none;
+  display: inline-flex;
+}
+
+.picker-toggle {
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--text-dim);
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s, border-color 0.15s;
+  padding: 0;
+}
+
+.picker-toggle sup {
+  font-size: 8px;
+  margin-left: 1px;
+}
+
+.chat-row:hover .picker-toggle,
+.picker-toggle:focus-visible,
+.picker-root:has(.picker-popover) .picker-toggle {
+  opacity: 1;
+}
+
+.picker-toggle:hover {
+  color: var(--text);
+  border: 1px solid var(--accent);
+}
+
+.picker-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  z-index: 30;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 8px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
+}
+
+.chat-row--them .picker-popover {
+  left: 0;
+}
+
+.chat-row--me .picker-popover {
+  right: 0;
+}
+
+.picker-popover--emoji {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 2px;
+  width: 264px;
+}
+
+.picker-popover--react {
+  display: flex;
+  gap: 2px;
+}
+
+.emoji-cell {
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  font-size: 20px;
+  line-height: 1;
+  padding: 5px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+.emoji-cell:hover {
+  background: rgba(46, 230, 168, 0.18);
+}
+
+.emoji-cell--active,
+.emoji-cell--active:hover {
+  background: var(--accent);
+}
+
+/* Tapback badge pinned to the bubble's top corner */
+
+.bubble-anchor {
+  position: relative;
+  display: flex;
+}
+
+.chat-row--me .bubble-anchor {
+  justify-content: flex-end;
+}
+
+.reaction-badge {
+  position: absolute;
+  top: -9px;
+  font-size: 13px;
+  line-height: 1;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px 5px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.chat-row--them .reaction-badge {
+  left: -8px;
+}
+
+.chat-row--me .reaction-badge {
+  right: -8px;
+}
+
+/* ---- Render ---- */
+
+.progress-wrap {
+  margin-top: 12px;
+}
+
+.progress-track {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+.render-result {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.render-video {
+  width: 100%;
+  max-width: 320px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: #000;
+}
+
+/* ---- Hook section ---- */
+
+.hook-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.hook-clip-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-2);
+  padding: 6px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--text);
+  transition: border-color 0.15s;
+}
+
+.hook-clip-card:hover {
+  border-color: var(--accent);
+}
+
+.hook-clip-card:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.hook-clip-video {
+  width: 100%;
+  aspect-ratio: 9 / 16;
+  object-fit: cover;
+  border-radius: 7px;
+  background: #000;
+  display: block;
+}
+
+.hook-clip-name {
+  font-size: 12px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hook-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-2);
+  padding: 8px 10px;
+  margin-bottom: 4px;
+}
+
+.hook-card-video {
+  width: 44px;
+  height: 78px;
+  object-fit: cover;
+  border-radius: 7px;
+  background: #000;
+  flex: none;
+}
+
+.hook-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.hook-card-body strong {
+  font-size: 13.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hook-card-body span {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.hook-remove {
+  flex: none;
+}
+
+/* Trim clip sliders. */
+.hook-trim {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-2);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hook-trim-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hook-trim-label {
+  flex: none;
+  width: 36px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
+.hook-trim-slider {
+  flex: 1;
+  min-width: 0;
+  accent-color: var(--accent);
+}
+
+.hook-trim-value {
+  flex: none;
+  width: 42px;
+  text-align: right;
+  font-size: 12px;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.hook-trim-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.hook-trim-readout {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.hook-trim-reset {
+  flex: none;
+  padding: 5px 10px;
+  font-size: 12px;
+}
+
+/* ---- Mobile ---- */
+
+@media (max-width: 980px) {
+  .page-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .preview-panel {
+    position: static;
+    order: -1;
+  }
+}
+
+
+/* Links inside editor sections (e.g. hook sourcing) — but not buttons */
+.editor-section a:not(.btn) {
+  color: var(--accent);
+}
+
+.editor-section a:not(.btn):hover {
+  color: var(--accent-hover);
+}

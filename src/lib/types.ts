@@ -31,7 +31,7 @@ export type VideoMessage = {
   id: string;
   kind: 'video';
   sender: Sender;
-  /** Public URL path, e.g. `/uploads/abc123.mp4` */
+  /** API URL path, e.g. `/api/uploads/abc123.mp4` */
   src: string;
   /** Duration in seconds, measured client-side at upload time. */
   durationSec: number;
@@ -48,7 +48,7 @@ export type VideoTheme = 'dark' | 'light';
  * (e.g. girl crying, captioned in CapCut beforehand).
  */
 export type HookClip = {
-  /** Public URL path, e.g. `/hooks/crying-1.mp4` or `/uploads/abc.mp4` */
+  /** URL path, e.g. `/hooks/crying-1.mp4` (static) or `/api/uploads/abc.mp4` (temp) */
   src: string;
   /** Duration in seconds, measured client-side at selection/upload time. */
   durationSec: number;

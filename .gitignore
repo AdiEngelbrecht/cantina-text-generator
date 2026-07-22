@@ -33,3 +33,7 @@ pnpm-debug.log*
 
 # Vercel
 .vercel
+
+# User-generated files (renders, uploads) — never commit
+public/renders/
+public/uploads/

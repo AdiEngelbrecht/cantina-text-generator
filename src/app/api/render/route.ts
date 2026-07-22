@@ -38,6 +38,8 @@ const absolutizeVideoSrcs = (
   ),
 });
 
+const RENDER_DIR = path.join('/tmp', 'renders');
+
 const runRender = async (
   id: string,
   props: ConversationProps,
@@ -59,7 +61,7 @@ const runRender = async (
       inputProps: props,
     });
 
-    const outDir = path.join(process.cwd(), 'public', 'renders');
+    const outDir = RENDER_DIR;
     await mkdir(outDir, {recursive: true});
     const outPath = path.join(outDir, `${id}.mp4`);
 
@@ -76,7 +78,7 @@ const runRender = async (
 
     job.status = 'done';
     job.progress = 1;
-    job.url = `/renders/${id}.mp4`;
+    job.url = `/api/render/${id}/download`;
   } catch (err) {
     job.status = 'error';
     job.error = err instanceof Error ? err.message : String(err);

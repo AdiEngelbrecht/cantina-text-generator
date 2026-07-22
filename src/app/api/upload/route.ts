@@ -16,6 +16,8 @@ const EXT_BY_MIME: Record<string, string> = {
 };
 const ALLOWED_EXTS = new Set(['mp4', 'mov', 'webm']);
 
+const UPLOAD_DIR = path.join('/tmp', 'uploads');
+
 export const POST = async (req: Request) => {
   let form: FormData;
   try {
@@ -49,9 +51,9 @@ export const POST = async (req: Request) => {
   }
 
   const name = `${randomUUID()}.${ext}`;
-  const dir = path.join(process.cwd(), 'public', 'uploads');
+  const dir = UPLOAD_DIR;
   await mkdir(dir, {recursive: true});
   await writeFile(path.join(dir, name), Buffer.from(await file.arrayBuffer()));
 
-  return NextResponse.json({src: `/uploads/${name}`});
+  return NextResponse.json({src: `/api/uploads/${name}`});
 };

@@ -78,7 +78,7 @@ const runRender = async (
 
     job.status = 'done';
     job.progress = 1;
-    job.url = `/api/render/${id}/download`;
+    job.url = `/api/download/${id}`;
   } catch (err) {
     job.status = 'error';
     job.error = err instanceof Error ? err.message : String(err);

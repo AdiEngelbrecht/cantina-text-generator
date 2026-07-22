@@ -1,7 +1,7 @@
 import {createReadStream, statSync, unlinkSync} from 'fs';
 import path from 'path';
 import {NextResponse} from 'next/server';
-import {getJobs} from '../../jobs';
+import {getJobs} from '../../render/jobs';
 
 export const runtime = 'nodejs';
 

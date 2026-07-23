@@ -310,7 +310,7 @@ export const CantinaAppScene: React.FC<CantinaAppSceneComponentProps> = ({
           </div>
         </div>
 
-        {/* clip thumbnail */}
+        {/* clip thumbnail (or character image when provided) */}
         <div
           style={{
             marginTop: 26,
@@ -322,14 +322,21 @@ export const CantinaAppScene: React.FC<CantinaAppSceneComponentProps> = ({
             boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
           }}
         >
-          <Sequence from={5} layout="none">
-            <Video
-              src={src}
-              muted
-              objectFit="cover"
-              style={{width: '100%', height: '100%'}}
+          {scene.characterSrc ? (
+            <Img
+              src={resolveMediaSrc(scene.characterSrc)}
+              style={{width: '100%', height: '100%', objectFit: 'cover'}}
             />
-          </Sequence>
+          ) : (
+            <Sequence from={5} layout="none">
+              <Video
+                src={src}
+                muted
+                objectFit="cover"
+                style={{width: '100%', height: '100%'}}
+              />
+            </Sequence>
+          )}
         </div>
 
         {/* typed prompt + caret */}

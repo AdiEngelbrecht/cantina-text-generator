@@ -31,15 +31,39 @@ export type VideoMessage = {
   id: string;
   kind: 'video';
   sender: Sender;
-  /** API URL path, e.g. `/api/uploads/abc123.mp4` */
+  /** URL: blob: object URL or static path. */
   src: string;
   /** Duration in seconds, measured client-side at upload time. */
   durationSec: number;
   /** Optional Tapback badge shown on the bubble. */
   reaction?: Tapback;
+  /** Transient (editor only): script slot [photoN] this message came from. */
+  slot?: number;
 };
 
-export type Message = TextMessage | VideoMessage;
+/** A photo embedded in the chat as an image bubble. */
+export type ImageMessage = {
+  id: string;
+  kind: 'image';
+  sender: Sender;
+  /** URL: blob: object URL or static path. */
+  src: string;
+  /** Optional Tapback badge shown on the bubble. */
+  reaction?: Tapback;
+  /** Transient (editor only): script slot [photoN] this message came from. */
+  slot?: number;
+};
+
+export type Message = TextMessage | VideoMessage | ImageMessage;
+
+/** An uploaded photo/video slot ([photo1]–[photo10]) in the editor. */
+export type MediaSlot = {
+  /** blob: object URL or static path. */
+  src: string;
+  kind: 'image' | 'video';
+  /** Videos only; seconds, measured client-side. */
+  durationSec: number;
+};
 
 export type VideoTheme = 'dark' | 'light';
 
@@ -48,14 +72,25 @@ export type VideoTheme = 'dark' | 'light';
  * (e.g. girl crying, captioned in CapCut beforehand).
  */
 export type HookClip = {
-  /** URL path, e.g. `/hooks/crying-1.mp4` (static) or `/api/uploads/abc.mp4` (temp) */
+  /** URL path, e.g. `/hooks/crying-1.mp4` (static) or blob: object URL. */
   src: string;
-  /** Duration in seconds, measured client-side at selection/upload time. */
+  /** 'video' (default) or 'image' (static hook photo). */
+  mediaType?: 'video' | 'image';
+  /**
+   * Videos: source duration in seconds (measured client-side).
+   * Images: how long the still shows, seconds (default 3).
+   */
   durationSec: number;
   /**
-   * Trim window into the source clip, in seconds.
+   * Videos only. When false, `customDurationSec` caps how long the hook
+   * plays instead of the full trimmed window. Default true.
+   */
+  autoDuration?: boolean;
+  /** Videos only, used when autoDuration is false. Seconds (1–HOOK_MAX_SECONDS). */
+  customDurationSec?: number;
+  /**
+   * Trim window into the source clip, in seconds (videos only).
    * Defaults: trimStartSec 0, trimEndSec = durationSec.
-   * The composition plays [trimStartSec, trimEndSec), capped by HOOK_MAX_SECONDS.
    */
   trimStartSec?: number;
   trimEndSec?: number;
@@ -71,6 +106,9 @@ export type CantinaAppSceneProps = {
   typingSec?: number;
   /** Seconds the Generating modal shows. Default 4. */
   generatingSec?: number;
+  /** Optional Cantina character image shown in the composer (object URL or
+   *  static path). Falls back to the response clip's own thumbnail. */
+  characterSrc?: string;
 };
 
 /** Root props for the `ConversationVideo` composition and the render API. */
@@ -86,6 +124,10 @@ export type ConversationProps = {
   cantinaApp?: CantinaAppSceneProps;
   /** Contact avatar image (object URL or static path) for the chat header. */
   avatarSrc?: string;
+  /** Memoji preset avatar: emoji glyph on a colored circle. Overrides avatarSrc. */
+  avatarEmoji?: string;
+  /** Memoji preset avatar: circle background color (hex). */
+  avatarBg?: string;
   /** Status-bar clock and read-receipt time. Default '2:57'. */
   clockTime?: string;
   /** Back-button unread count. Default: message count. */
@@ -96,6 +138,12 @@ export type ConversationProps = {
   replyDelay?: number;
   /** iMessage send/receive blips on each message. Default true. */
   chatSounds?: boolean;
+  /**
+   * Editor-only: uploaded photo/video slot files referenced by `[photoN]`
+   * script lines. The composition reads only `messages`; slots are resolved
+   * into concrete messages by the editor.
+   */
+  mediaSlots?: Record<number, MediaSlot>;
 };
 
 export const DEFAULT_PROPS: ConversationProps = {

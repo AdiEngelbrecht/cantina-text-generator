@@ -28,14 +28,17 @@ const VideoCameraIcon: React.FC = () => (
  * iOS Messages chat header: back chevron + unread count on the left,
  * centered avatar with the contact name underneath, video icon right.
  * When `avatarSrc` is set, the avatar shows that image instead of the
- * initial-on-gradient placeholder.
+ * initial-on-gradient placeholder. A memoji preset (`avatarEmoji` +
+ * `avatarBg`) wins over `avatarSrc`: flat colored circle with the emoji.
  */
 export const ChatHeader: React.FC<{
   theme: VideoTheme;
   name: string;
   count: number;
   avatarSrc?: string;
-}> = ({theme, name, count, avatarSrc}) => {
+  avatarEmoji?: string;
+  avatarBg?: string;
+}> = ({theme, name, count, avatarSrc, avatarEmoji, avatarBg}) => {
   const palette = getPalette(theme);
   const initial = (name.trim()[0] ?? '?').toUpperCase();
   return (
@@ -78,14 +81,18 @@ export const ChatHeader: React.FC<{
             width: 112,
             height: 112,
             borderRadius: '50%',
-            background: 'linear-gradient(160deg, #9A9AA2 0%, #545458 100%)',
+            background: avatarEmoji
+              ? (avatarBg ?? '#8E8E93')
+              : 'linear-gradient(160deg, #9A9AA2 0%, #545458 100%)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             overflow: 'hidden',
           }}
         >
-          {avatarSrc ? (
+          {avatarEmoji ? (
+            <span style={{fontSize: 56, lineHeight: 1}}>{avatarEmoji}</span>
+          ) : avatarSrc ? (
             <Img
               src={resolveMediaSrc(avatarSrc)}
               style={{width: '100%', height: '100%', objectFit: 'cover'}}

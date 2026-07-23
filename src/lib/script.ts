@@ -8,6 +8,10 @@
  *                    (❤️ love · 👍 like · 👎 dislike · 😂 laugh · ‼️ emphasize · ❓ question)
  *   [video]        → placeholder video bubble from them; the integrator swaps
  *                    in the real uploaded clip's src/duration at that position
+ *   [photoN]       → placeholder image bubble from them for media slot N (1–10);
+ *                    the integrator resolves it against `mediaSlots` into a real
+ *                    image or video message, and drops it when slot N is empty
+ *   [photoN:me]    → same, but sent from me
  *
  * Blank lines are ignored. Unknown lines become `them:` text plus a warning.
  * Parsing never throws: problems are collected in `warnings`.
@@ -41,6 +45,9 @@ const EMOJI_BY_TAPBACK: Record<Tapback, string> = {
   emphasize: '‼️',
   question: '❓',
 };
+
+/** `[photoN]` / `[photoN:me]` on its own line, case-insensitive. */
+const PHOTO_LINE = /^\[photo(\d{1,2})(:me)?\]$/i;
 
 /** crypto.randomUUID() with a fallback for older/insecure contexts. */
 const newId = (): string => {
@@ -95,22 +102,56 @@ export const parseScript = (text: string): ParsedScript => {
       // this position; the marker is dropped if there is no uploaded clip.
       messages.push({id: newId(), kind: 'video', sender: 'them', src: '', durationSec: 0});
     } else {
-      messages.push({id: newId(), kind: 'text', sender: 'them', text: line});
-      warnings.push(`Line ${lineNo}: no known prefix — treated as "them:" text.`);
+      const photo = PHOTO_LINE.exec(line);
+      if (photo) {
+        const slot = Number(photo[1]);
+        if (slot < 1 || slot > 10) {
+          messages.push({id: newId(), kind: 'text', sender: 'them', text: line});
+          warnings.push(
+            `Line ${lineNo}: [photo${slot}] out of range (1–10) — treated as "them:" text.`,
+          );
+        } else {
+          // Placeholder: page.tsx resolves this against mediaSlots[N] into a
+          // real image or video message; dropped when the slot is empty.
+          messages.push({
+            id: newId(),
+            kind: 'image',
+            sender: photo[2] ? 'me' : 'them',
+            src: '',
+            slot,
+          });
+        }
+      } else {
+        messages.push({id: newId(), kind: 'text', sender: 'them', text: line});
+        warnings.push(`Line ${lineNo}: no known prefix — treated as "them:" text.`);
+      }
     }
   });
 
   return {messages, warnings};
 };
 
-/** Inverse of parseScript: video → `[video]`, reaction → `react:` line after its message. */
+/**
+ * Inverse of parseScript: slot message → `[photoN]` / `[photoN:me]`,
+ * slot-less video → `[video]`, reaction → `react:` line after its message.
+ * Slot-less images cannot round-trip (their src would be lost) and are dropped.
+ */
 export const messagesToScript = (messages: Message[]): string =>
   messages
-    .map((message) => {
-      const first =
-        message.kind === 'video' ? '[video]' : `${message.sender}: ${message.text}`;
+    .map((message): string | null => {
+      let first: string;
+      if (message.kind !== 'text' && message.slot !== undefined) {
+        first = `[photo${message.slot}${message.sender === 'me' ? ':me' : ''}]`;
+      } else if (message.kind === 'video') {
+        first = '[video]';
+      } else if (message.kind === 'text') {
+        first = `${message.sender}: ${message.text}`;
+      } else {
+        return null;
+      }
       return message.reaction
         ? `${first}\nreact: ${EMOJI_BY_TAPBACK[message.reaction]}`
         : first;
     })
+    .filter((line): line is string => line !== null)
     .join('\n');

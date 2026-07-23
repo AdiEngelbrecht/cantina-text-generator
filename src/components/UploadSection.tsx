@@ -44,6 +44,7 @@ export const UploadSection: React.FC<Props> = ({
   onCantinaAppChange,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
+  const charInputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -76,6 +77,12 @@ export const UploadSection: React.FC<Props> = ({
 
   const patchScene = (patch: Partial<CantinaAppSceneProps>) => {
     onCantinaAppChange({...DEFAULT_SCENE, ...cantinaApp, ...patch});
+  };
+
+  const handleCharacterFile = (file: File) => {
+    if (!file.type.startsWith('image/')) return;
+    const url = URL.createObjectURL(file); // kept alive for the session
+    patchScene({characterSrc: url});
   };
 
   return (
@@ -215,6 +222,66 @@ export const UploadSection: React.FC<Props> = ({
                   {(cantinaApp.generatingSec ?? 4).toFixed(1)}s
                 </span>
               </div>
+
+              <label className="field-label" style={{marginTop: 12}}>
+                Cantina character image (optional)
+              </label>
+              <div style={{display: 'flex', alignItems: 'center', gap: 10}}>
+                <input
+                  ref={charInputRef}
+                  type="file"
+                  accept="image/*"
+                  hidden
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleCharacterFile(file);
+                    e.target.value = '';
+                  }}
+                />
+                {cantinaApp.characterSrc ? (
+                  <img
+                    src={cantinaApp.characterSrc}
+                    alt="Cantina character"
+                    style={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: 8,
+                      objectFit: 'cover',
+                      border: '1px solid var(--border)',
+                    }}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: 8,
+                      border: '1px dashed var(--border)',
+                    }}
+                  />
+                )}
+                <button
+                  type="button"
+                  className="btn"
+                  style={{padding: '6px 12px', fontSize: 12.5}}
+                  onClick={() => charInputRef.current?.click()}
+                >
+                  Upload
+                </button>
+                {cantinaApp.characterSrc ? (
+                  <button
+                    type="button"
+                    className="btn btn--ghost"
+                    style={{padding: '6px 12px', fontSize: 12.5}}
+                    onClick={() => patchScene({characterSrc: undefined})}
+                  >
+                    Remove
+                  </button>
+                ) : null}
+              </div>
+              <p className="section-note" style={{marginTop: 6}}>
+                No character? The clip itself is shown in the app.
+              </p>
             </>
           ) : null}
         </div>

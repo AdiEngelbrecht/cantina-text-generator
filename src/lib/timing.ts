@@ -31,11 +31,20 @@ export const OUTRO_FRAMES = 45;
 /** Cap on how much of an uploaded Cantina clip is shown. */
 export const VIDEO_MAX_SECONDS = 15;
 /** Cap on how much of the optional hook clip is shown before the chat. */
-export const HOOK_MAX_SECONDS = 5;
+export const HOOK_MAX_SECONDS = 10;
 
-/** Frames the optional hook clip occupies at the start of the composition. */
+/** Frames the optional hook occupies at the start of the composition. */
 export const getHookFrames = (props: ConversationProps): number => {
   if (!props.hook) return 0;
+  if ((props.hook.mediaType ?? 'video') === 'image') {
+    return Math.round(
+      Math.min(Math.max(props.hook.durationSec, 0.5), HOOK_MAX_SECONDS) * FPS,
+    );
+  }
+  if (props.hook.autoDuration === false) {
+    const custom = props.hook.customDurationSec ?? props.hook.durationSec;
+    return Math.round(Math.min(Math.max(custom, 0.5), HOOK_MAX_SECONDS) * FPS);
+  }
   const start = Math.max(0, props.hook.trimStartSec ?? 0);
   const end = Math.min(
     props.hook.durationSec,
@@ -127,6 +136,21 @@ export const getTimeline = (props: ConversationProps): Timeline => {
         videoDurationFrames: null,
       });
       cursor = appearFrame + textHoldFrames;
+    } else if (message.kind === 'image' && message.sender === 'them') {
+      // Photos from them also get the typing indicator first.
+      const typingStartFrame = cursor;
+      const appearFrame = cursor + themTypingFrames;
+      items.push({
+        id: message.id,
+        kind: message.kind,
+        sender: message.sender,
+        appearFrame,
+        typingStartFrame,
+        typeStartFrame: null,
+        playFromFrame: null,
+        videoDurationFrames: null,
+      });
+      cursor = appearFrame + textHoldFrames;
     } else if (message.kind === 'text') {
       const typingFrames = getMeTypingFrames(message.text, typingSpeed);
       const typeStartFrame = cursor;
@@ -138,6 +162,20 @@ export const getTimeline = (props: ConversationProps): Timeline => {
         appearFrame,
         typingStartFrame: null,
         typeStartFrame,
+        playFromFrame: null,
+        videoDurationFrames: null,
+      });
+      cursor = appearFrame + textHoldFrames;
+    } else if (message.kind === 'image') {
+      // Photos from me appear instantly, like videos.
+      const appearFrame = cursor;
+      items.push({
+        id: message.id,
+        kind: message.kind,
+        sender: message.sender,
+        appearFrame,
+        typingStartFrame: null,
+        typeStartFrame: null,
         playFromFrame: null,
         videoDurationFrames: null,
       });

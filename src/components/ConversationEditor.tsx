@@ -1,9 +1,10 @@
 'use client';
 
 import React, {useEffect, useState} from 'react';
-import type {Message, Sender, Tapback} from '../lib/types';
+import type {MediaSlot, Message, Sender, Tapback} from '../lib/types';
 import type {Preset} from '../lib/presets';
 import {messagesToScript, parseScript} from '../lib/script';
+import {MediaSlots} from './MediaSlotsSection';
 
 type Props = {
   messages: Message[];
@@ -17,6 +18,10 @@ type Props = {
   onApplyPreset: (preset: Preset) => void;
   /** Paste mode: replace the whole conversation with parsed script messages. */
   onReplaceMessages: (messages: Message[]) => void;
+  /** Uploaded files per script slot ([photo1]–[photo10]). */
+  mediaSlots: Record<number, MediaSlot>;
+  /** Set or clear (undefined) the file for a photo/video slot. */
+  onSetMediaSlot: (n: number, slot: MediaSlot | undefined) => void;
 };
 
 const DND_MIME = 'application/x-cantina-message';
@@ -58,6 +63,8 @@ export const ConversationEditor: React.FC<Props> = ({
   onSetReaction,
   onApplyPreset,
   onReplaceMessages,
+  mediaSlots,
+  onSetMediaSlot,
 }) => {
   const [activePresetId, setActivePresetId] = useState<string | null>(null);
   const [mode, setMode] = useState<'builder' | 'paste'>('builder');
@@ -240,7 +247,9 @@ export const ConversationEditor: React.FC<Props> = ({
           <p className="section-note">
             One per line: <code>me:</code> / <code>them:</code> text,{' '}
             <code>react: ❤️</code> reacts to the previous message,{' '}
-            <code>[video]</code> marks where your uploaded Cantina clip goes.
+            <code>[video]</code> marks where your uploaded Cantina clip goes,{' '}
+            <code>[photo1]</code>–<code>[photo10]</code> (add <code>:me</code> to
+            send them yourself) drop in a media slot below.
           </p>
         </>
       ) : (
@@ -302,8 +311,38 @@ export const ConversationEditor: React.FC<Props> = ({
                     <div className="video-card">
                       <span className="video-card-icon">▶</span>
                       <div className="video-card-body">
-                        <strong>Cantina video</strong>
+                        <strong>
+                          {message.slot ? `Video ${message.slot}` : 'Cantina video'}
+                        </strong>
                         <span>{message.durationSec.toFixed(1)}s</span>
+                      </div>
+                    </div>
+                  ) : message.kind === 'image' ? (
+                    <div className="video-card">
+                      <span className="video-card-icon">
+                        {message.src ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={message.src}
+                            alt=""
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover',
+                              borderRadius: 10,
+                            }}
+                          />
+                        ) : (
+                          '🖼'
+                        )}
+                      </span>
+                      <div className="video-card-body">
+                        <strong>
+                          {message.slot ? `Photo ${message.slot}` : 'Photo'}
+                        </strong>
+                        <span>
+                          {message.slot ? `[photo${message.slot}]` : 'image'}
+                        </span>
                       </div>
                     </div>
                   ) : (
@@ -427,6 +466,8 @@ export const ConversationEditor: React.FC<Props> = ({
           + Add message (them)
         </button>
       </div>
+
+      <MediaSlots mediaSlots={mediaSlots} onSetMediaSlot={onSetMediaSlot} />
         </>
       )}
     </section>

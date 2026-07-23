@@ -16,6 +16,7 @@ import {Keyboard} from './components/Keyboard';
 import {StatusBar} from './components/StatusBar';
 import {ChatHeader} from './components/ChatHeader';
 import {MessageBubble} from './components/MessageBubble';
+import {ImageBubble} from './components/ImageBubble';
 import {TypingIndicator} from './components/TypingIndicator';
 import {VideoBubble} from './components/VideoBubble';
 import {TAPBACK_DELAY} from './components/Tapback';
@@ -24,6 +25,9 @@ import {CantinaAppScene} from './components/CantinaAppScene';
 import {FONT_STACK, getPalette} from './components/theme';
 
 /** Frames after the last `me` bubble lands until the read receipt shows. */
+/** Frames after the last `me` bubble lands until 'Delivered' shows, and the
+ *  fallback flip to 'Read' when no them-reply follows. */
+const DELIVERED_DELAY = 4;
 const READ_RECEIPT_DELAY = 14;
 
 const Entrance: React.FC<{
@@ -103,7 +107,10 @@ const ChatScene: React.FC<{props: ConversationProps; timeline: Timeline}> = ({
       frame < item.appearFrame,
   );
 
-  // Read receipt under the last-sent `me` message.
+  // Read receipt under the last-sent `me` message: 'Delivered' fades in at
+  // appearFrame + READ_RECEIPT_DELAY, then flips to 'Read {clockTime}' 6
+  // frames before the next them-typing indicator starts after that message
+  // (or at appearFrame + READ_RECEIPT_DELAY when no them-reply follows).
   const lastMeIndex = messages.reduce(
     (acc, m, i) => (m.sender === 'me' ? i : acc),
     -1,
@@ -112,7 +119,28 @@ const ChatScene: React.FC<{props: ConversationProps; timeline: Timeline}> = ({
     lastMeIndex >= 0
       ? itemsById.get(messages[lastMeIndex].id) ?? null
       : null;
-  const readAt = lastMeTiming ? lastMeTiming.appearFrame + READ_RECEIPT_DELAY : null;
+  const deliveredAt = lastMeTiming
+    ? lastMeTiming.appearFrame + DELIVERED_DELAY
+    : null;
+  const nextThemTypingStart = lastMeTiming
+    ? (timeline.items.find(
+        (item) =>
+          item.typingStartFrame !== null &&
+          item.typingStartFrame > lastMeTiming.appearFrame,
+      )?.typingStartFrame ?? null)
+    : null;
+  const readAt = lastMeTiming
+    ? nextThemTypingStart !== null
+      ? Math.max(nextThemTypingStart - 6, deliveredAt ?? 0)
+      : lastMeTiming.appearFrame + READ_RECEIPT_DELAY
+    : null;
+  const deliveredOpacity =
+    deliveredAt !== null
+      ? interpolate(frame, [deliveredAt, deliveredAt + 6], [0, 1], {
+          extrapolateLeft: 'clamp',
+          extrapolateRight: 'clamp',
+        })
+      : 0;
   const receiptOpacity =
     readAt !== null
       ? interpolate(frame, [readAt, readAt + 6], [0, 1], {
@@ -136,6 +164,8 @@ const ChatScene: React.FC<{props: ConversationProps; timeline: Timeline}> = ({
         name={props.contactName}
         count={props.unreadCount ?? messages.length}
         avatarSrc={props.avatarSrc}
+        avatarEmoji={props.avatarEmoji}
+        avatarBg={props.avatarBg}
       />
 
       {/* Message area, anchored to the bottom of the chat zone. */}
@@ -150,6 +180,17 @@ const ChatScene: React.FC<{props: ConversationProps; timeline: Timeline}> = ({
           overflow: 'hidden',
         }}
       >
+        {/* Day-stamp divider: always the first row, no animation. */}
+        <div
+          style={{
+            alignSelf: 'center',
+            fontSize: 26,
+            color: palette.secondaryText,
+            marginBottom: 22,
+          }}
+        >
+          Today {clockTime}
+        </div>
         {messages.map((message, i) => {
           const item = itemsById.get(message.id);
           if (!item || frame < item.appearFrame) return null;
@@ -163,7 +204,7 @@ const ChatScene: React.FC<{props: ConversationProps; timeline: Timeline}> = ({
                 localFrame={frame - item.appearFrame}
                 fps={fps}
                 sender={message.sender}
-                subtle={message.kind === 'video'}
+                subtle={message.kind !== 'text'}
               >
                 {message.kind === 'text' ? (
                   <MessageBubble
@@ -172,6 +213,14 @@ const ChatScene: React.FC<{props: ConversationProps; timeline: Timeline}> = ({
                     text={message.text}
                     showTail={showTail}
                     reaction={message.reaction}
+                    reactionLocalFrame={
+                      frame - item.appearFrame - TAPBACK_DELAY
+                    }
+                  />
+                ) : message.kind === 'image' ? (
+                  <ImageBubble
+                    theme={props.theme}
+                    message={message}
                     reactionLocalFrame={
                       frame - item.appearFrame - TAPBACK_DELAY
                     }
@@ -198,6 +247,22 @@ const ChatScene: React.FC<{props: ConversationProps; timeline: Timeline}> = ({
                   }}
                 >
                   Read {clockTime}
+                </div>
+              ) : i === lastMeIndex &&
+                deliveredAt !== null &&
+                frame >= deliveredAt ? (
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'flex-end',
+                    marginTop: 6,
+                    marginRight: 10,
+                    fontSize: 26,
+                    color: palette.secondaryText,
+                    opacity: deliveredOpacity,
+                  }}
+                >
+                  Delivered
                 </div>
               ) : null}
             </div>
@@ -243,6 +308,40 @@ const ChatScene: React.FC<{props: ConversationProps; timeline: Timeline}> = ({
                       : 'sounds/imessage-receive.wav',
                   )}
                   volume={0.5}
+                />
+              </Sequence>
+            ) : null,
+          )
+        : null}
+      {/* Typing SFX: soft rumble when a them-typing indicator appears,
+          looping key clicks during each me-typing window. */}
+      {chatSounds
+        ? timeline.items.map((item) =>
+            item.typingStartFrame !== null ? (
+              <Sequence
+                key={`typing-${item.id}`}
+                from={item.typingStartFrame}
+              >
+                <Audio
+                  src={staticFile('sounds/typing-indicator.wav')}
+                  volume={0.5}
+                />
+              </Sequence>
+            ) : null,
+          )
+        : null}
+      {chatSounds
+        ? timeline.items.map((item) =>
+            item.typeStartFrame !== null ? (
+              <Sequence
+                key={`keys-${item.id}`}
+                from={item.typeStartFrame}
+                durationInFrames={item.appearFrame - item.typeStartFrame}
+              >
+                <Audio
+                  src={staticFile('sounds/keyboard-clicks.wav')}
+                  volume={0.5}
+                  loop
                 />
               </Sequence>
             ) : null,

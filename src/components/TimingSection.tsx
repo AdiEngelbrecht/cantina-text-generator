@@ -22,6 +22,12 @@ const STEP = 0.1;
 
 const readout = (v: number): string => `${v.toFixed(1)}×`;
 
+/** Video style presets: matched against the current slider values. */
+const STYLE_PRESETS = [
+  {label: 'Regular', typingSpeed: 1, replyDelay: 1},
+  {label: 'Sped up', typingSpeed: 2, replyDelay: 0.6},
+] as const;
+
 export const TimingSection: React.FC<Props> = ({
   typingSpeed,
   replyDelay,
@@ -37,6 +43,30 @@ export const TimingSection: React.FC<Props> = ({
           <p>How fast you type, how quickly they reply, and the send blips.</p>
         </div>
       </header>
+
+      <label className="field-label">Video style</label>
+      <div className="segmented" style={{marginBottom: 12}}>
+        {STYLE_PRESETS.map((preset) => {
+          const active =
+            typingSpeed === preset.typingSpeed &&
+            replyDelay === preset.replyDelay;
+          return (
+            <button
+              key={preset.label}
+              type="button"
+              className={`segmented-btn${active ? ' segmented-btn--active' : ''}`}
+              onClick={() =>
+                onChange({
+                  typingSpeed: preset.typingSpeed,
+                  replyDelay: preset.replyDelay,
+                })
+              }
+            >
+              {preset.label}
+            </button>
+          );
+        })}
+      </div>
 
       <div className="hook-trim">
         <label className="field-label" htmlFor="typing-speed" style={{margin: 0}}>

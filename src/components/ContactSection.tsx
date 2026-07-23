@@ -12,6 +12,12 @@ type Props = {
   avatarSrc?: string;
   /** Called with the new avatar object URL, or `undefined` on remove. */
   onAvatarChange?: (src: string | undefined) => void;
+  /** Active memoji preset emoji, if one is set (overrides avatarSrc). */
+  avatarEmoji?: string;
+  /** Active memoji preset circle background color (hex). */
+  avatarBg?: string;
+  /** Called with the preset pair, or `(undefined, undefined)` to clear. */
+  onMemojiChange?: (emoji: string | undefined, bg?: string) => void;
   /** Status-bar clock time. Empty/undefined → composition default ('2:57'). */
   clockTime?: string;
   /** Called with the typed time, or `undefined` when the field is emptied. */
@@ -26,6 +32,18 @@ type Props = {
 
 const clampUnread = (n: number) => Math.min(99, Math.max(0, n));
 
+/** Memoji avatar presets: emoji glyph on a colored circle. */
+const MEMOJI_PRESETS: {emoji: string; bg: string}[] = [
+  {emoji: '👩', bg: '#f9a8d4'},
+  {emoji: '🧑‍🦱', bg: '#93c5fd'},
+  {emoji: '👵', bg: '#e5e7eb'},
+  {emoji: '👴', bg: '#fcd34d'},
+  {emoji: '🧔', bg: '#fdba74'},
+  {emoji: '👧', bg: '#c4b5fd'},
+  {emoji: '🐶', bg: '#fde68a'},
+  {emoji: '🐱', bg: '#d1d5db'},
+];
+
 export const ContactSection: React.FC<Props> = ({
   contactName,
   theme,
@@ -33,6 +51,9 @@ export const ContactSection: React.FC<Props> = ({
   onThemeChange,
   avatarSrc,
   onAvatarChange,
+  avatarEmoji,
+  avatarBg,
+  onMemojiChange,
   clockTime,
   onClockTimeChange,
   unreadCount,
@@ -41,6 +62,7 @@ export const ContactSection: React.FC<Props> = ({
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const effectiveUnread = clampUnread(unreadCount ?? messageCount);
+  const memojiActive = avatarEmoji !== undefined;
 
   const handleAvatarFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -74,7 +96,9 @@ export const ContactSection: React.FC<Props> = ({
 
       <label className="field-label">Avatar (optional)</label>
       <div className="avatar-row">
-        {avatarSrc ? (
+        {memojiActive ? (
+          <div className="avatar-placeholder" aria-hidden="true" />
+        ) : avatarSrc ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img className="avatar-preview" src={avatarSrc} alt="Contact avatar" />
         ) : (
@@ -94,7 +118,11 @@ export const ContactSection: React.FC<Props> = ({
         >
           Upload
         </button>
-        {avatarSrc ? (
+        {memojiActive ? (
+          <span className="section-note" style={{margin: 0}}>
+            memoji in use
+          </span>
+        ) : avatarSrc ? (
           <button
             type="button"
             className="btn btn--ghost"
@@ -103,6 +131,46 @@ export const ContactSection: React.FC<Props> = ({
             Remove
           </button>
         ) : null}
+      </div>
+
+      <label className="field-label">Memoji avatars — tap to set</label>
+      <div style={{display: 'flex', flexWrap: 'wrap', gap: 8}}>
+        {MEMOJI_PRESETS.map((preset) => {
+          const active =
+            avatarEmoji === preset.emoji && avatarBg === preset.bg;
+          return (
+            <button
+              key={preset.emoji}
+              type="button"
+              aria-label={`Memoji ${preset.emoji}`}
+              aria-pressed={active}
+              onClick={() =>
+                active
+                  ? onMemojiChange?.(undefined, undefined)
+                  : onMemojiChange?.(preset.emoji, preset.bg)
+              }
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: '50%',
+                border: 'none',
+                background: preset.bg,
+                fontSize: 24,
+                lineHeight: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                padding: 0,
+                boxShadow: active
+                  ? '0 0 0 2px var(--bg, #fff), 0 0 0 4px var(--accent)'
+                  : 'none',
+              }}
+            >
+              {preset.emoji}
+            </button>
+          );
+        })}
       </div>
 
       <label className="field-label" htmlFor="clock-time">

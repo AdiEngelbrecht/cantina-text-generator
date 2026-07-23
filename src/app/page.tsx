@@ -3,6 +3,7 @@
 import React, {useCallback, useReducer} from 'react';
 import {
   DEFAULT_PROPS,
+  type CantinaAppSceneProps,
   type ConversationProps,
   type HookClip,
   type Message,
@@ -15,6 +16,7 @@ import {UploadSection} from '../components/UploadSection';
 import {HookSection} from '../components/HookSection';
 import {ConversationEditor} from '../components/ConversationEditor';
 import {ContactSection} from '../components/ContactSection';
+import {TimingSection} from '../components/TimingSection';
 import {SoundPicker} from '../components/SoundPicker';
 import {PreviewPanel} from '../components/PreviewPanel';
 import {RenderPanel} from '../components/RenderPanel';
@@ -26,11 +28,20 @@ type Action =
   | {type: 'deleteMessage'; id: string}
   | {type: 'reorderMessage'; id: string; targetIndex: number}
   | {type: 'setReaction'; id: string; reaction: Tapback | undefined}
+  | {type: 'replaceMessages'; messages: Message[]}
   | {type: 'setVideo'; src: string; durationSec: number}
   | {type: 'setHook'; hook: HookClip | undefined}
   | {type: 'setContactName'; name: string}
   | {type: 'setTheme'; theme: VideoTheme}
   | {type: 'setSound'; sound: string}
+  | {type: 'setAvatar'; src: string | undefined}
+  | {type: 'setClockTime'; time: string | undefined}
+  | {type: 'setUnreadCount'; n: number | undefined}
+  | {type: 'setCantinaApp'; scene: CantinaAppSceneProps | undefined}
+  | {
+      type: 'setTiming';
+      patch: {typingSpeed?: number; replyDelay?: number; chatSounds?: boolean};
+    }
   | {type: 'applyPreset'; preset: Preset};
 
 const newId = (): string =>
@@ -89,6 +100,36 @@ const reducer = (state: ConversationProps, action: Action): ConversationProps =>
           m.id === action.id ? {...m, reaction: action.reaction} : m,
         ),
       };
+    case 'replaceMessages': {
+      // Script-paste: swap the first `[video]` placeholder for the uploaded
+      // clip (keeping its position) and drop any remaining placeholders.
+      const uploaded = state.messages.find(
+        (m): m is Extract<Message, {kind: 'video'}> => m.kind === 'video',
+      );
+      let swapped = false;
+      const messages: Message[] = [];
+      for (const m of action.messages) {
+        if (m.kind === 'video' && (!m.src || m.durationSec === 0)) {
+          if (uploaded && !swapped) {
+            messages.push({...uploaded, id: m.id});
+            swapped = true;
+          }
+          continue;
+        }
+        messages.push(m);
+      }
+      return {...state, messages};
+    }
+    case 'setAvatar':
+      return {...state, avatarSrc: action.src};
+    case 'setClockTime':
+      return {...state, clockTime: action.time};
+    case 'setUnreadCount':
+      return {...state, unreadCount: action.n};
+    case 'setCantinaApp':
+      return {...state, cantinaApp: action.scene};
+    case 'setTiming':
+      return {...state, ...action.patch};
     case 'setVideo': {
       // Only one Cantina video per conversation: replace in place if present,
       // otherwise append at the end.
@@ -164,7 +205,14 @@ export default function Home() {
 
       <div className="page-grid">
         <div className="editor-column">
-          <UploadSection onVideoReady={handleVideoReady} hasVideo={hasVideo} />
+          <UploadSection
+            onVideoReady={handleVideoReady}
+            hasVideo={hasVideo}
+            cantinaApp={props.cantinaApp}
+            onCantinaAppChange={(scene) =>
+              dispatch({type: 'setCantinaApp', scene})
+            }
+          />
 
           <HookSection
             hook={props.hook}
@@ -184,6 +232,9 @@ export default function Home() {
             onSetReaction={(id, reaction) =>
               dispatch({type: 'setReaction', id, reaction})
             }
+            onReplaceMessages={(messages) =>
+              dispatch({type: 'replaceMessages', messages})
+            }
             onApplyPreset={(preset) => dispatch({type: 'applyPreset', preset})}
           />
 
@@ -192,6 +243,20 @@ export default function Home() {
             theme={props.theme}
             onContactNameChange={(name) => dispatch({type: 'setContactName', name})}
             onThemeChange={(theme) => dispatch({type: 'setTheme', theme})}
+            avatarSrc={props.avatarSrc}
+            onAvatarChange={(src) => dispatch({type: 'setAvatar', src})}
+            clockTime={props.clockTime}
+            onClockTimeChange={(time) => dispatch({type: 'setClockTime', time})}
+            unreadCount={props.unreadCount}
+            messageCount={props.messages.length}
+            onUnreadCountChange={(n) => dispatch({type: 'setUnreadCount', n})}
+          />
+
+          <TimingSection
+            typingSpeed={props.typingSpeed ?? 1}
+            replyDelay={props.replyDelay ?? 1}
+            chatSounds={props.chatSounds ?? true}
+            onChange={(patch) => dispatch({type: 'setTiming', patch})}
           />
 
           <SoundPicker

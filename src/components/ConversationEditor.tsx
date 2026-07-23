@@ -3,6 +3,7 @@
 import React, {useEffect, useState} from 'react';
 import type {Message, Sender, Tapback} from '../lib/types';
 import type {Preset} from '../lib/presets';
+import {messagesToScript, parseScript} from '../lib/script';
 
 type Props = {
   messages: Message[];
@@ -14,6 +15,8 @@ type Props = {
   onReorder: (id: string, targetIndex: number) => void;
   onSetReaction: (id: string, reaction: Tapback | undefined) => void;
   onApplyPreset: (preset: Preset) => void;
+  /** Paste mode: replace the whole conversation with parsed script messages. */
+  onReplaceMessages: (messages: Message[]) => void;
 };
 
 const DND_MIME = 'application/x-cantina-message';
@@ -54,8 +57,12 @@ export const ConversationEditor: React.FC<Props> = ({
   onReorder,
   onSetReaction,
   onApplyPreset,
+  onReplaceMessages,
 }) => {
   const [activePresetId, setActivePresetId] = useState<string | null>(null);
+  const [mode, setMode] = useState<'builder' | 'paste'>('builder');
+  const [scriptText, setScriptText] = useState('');
+  const [scriptWarnings, setScriptWarnings] = useState<string[]>([]);
   const [dragId, setDragId] = useState<string | null>(null);
   // Insertion index in the CURRENT list (before the dragged row is removed).
   const [dropIndex, setDropIndex] = useState<number | null>(null);
@@ -134,6 +141,13 @@ export const ConversationEditor: React.FC<Props> = ({
       <li key={`drop-${index}`} className="drop-indicator" aria-hidden />
     ) : null;
 
+  const handleLoadScript = () => {
+    const parsed = parseScript(scriptText);
+    onReplaceMessages(parsed.messages);
+    setScriptWarnings(parsed.warnings);
+    setMode('builder');
+  };
+
   return (
     <section className="editor-section">
       <header className="section-header">
@@ -147,6 +161,90 @@ export const ConversationEditor: React.FC<Props> = ({
         </div>
       </header>
 
+      <div
+        className="preset-chips"
+        role="tablist"
+        aria-label="Conversation input mode"
+        style={{marginBottom: 10}}
+      >
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mode === 'builder'}
+          className={`chip${mode === 'builder' ? ' chip--active' : ''}`}
+          onClick={() => setMode('builder')}
+        >
+          Chat builder
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mode === 'paste'}
+          className={`chip${mode === 'paste' ? ' chip--active' : ''}`}
+          onClick={() => setMode('paste')}
+        >
+          Paste script
+        </button>
+      </div>
+
+      {scriptWarnings.length > 0 ? (
+        <p className="section-note error" style={{marginTop: 0, marginBottom: 10}}>
+          Script loaded with {scriptWarnings.length} warning
+          {scriptWarnings.length === 1 ? '' : 's'}: {scriptWarnings.join(' · ')}
+        </p>
+      ) : null}
+
+      {mode === 'paste' ? (
+        <>
+          <textarea
+            className="input"
+            aria-label="Conversation script"
+            placeholder={
+              'me: mom\nme: MOM\nthem: What is it\nme: the dog died\nthem: WHAT\nreact: ❤️\n[video]'
+            }
+            value={scriptText}
+            onChange={(e) => setScriptText(e.target.value)}
+            rows={12}
+            style={{
+              resize: 'vertical',
+              fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+              fontSize: 13,
+              lineHeight: 1.5,
+            }}
+          />
+          <div className="btn-row" style={{alignItems: 'center'}}>
+            <button
+              type="button"
+              className="btn btn--primary"
+              disabled={!scriptText.trim()}
+              onClick={handleLoadScript}
+            >
+              Load script
+            </button>
+            <button
+              type="button"
+              onClick={() => setScriptText(messagesToScript(messages))}
+              style={{
+                background: 'none',
+                border: 'none',
+                padding: 0,
+                color: 'var(--accent)',
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              Export current convo as script
+            </button>
+          </div>
+          <p className="section-note">
+            One per line: <code>me:</code> / <code>them:</code> text,{' '}
+            <code>react: ❤️</code> reacts to the previous message,{' '}
+            <code>[video]</code> marks where your uploaded Cantina clip goes.
+          </p>
+        </>
+      ) : (
+        <>
       <div className="preset-chips" role="list" aria-label="Presets">
         {presets.map((preset) => (
           <button
@@ -329,6 +427,8 @@ export const ConversationEditor: React.FC<Props> = ({
           + Add message (them)
         </button>
       </div>
+        </>
+      )}
     </section>
   );
 };

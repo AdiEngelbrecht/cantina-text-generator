@@ -65,27 +65,57 @@ export type Timeline = {
   totalFrames: number;
   items: MessageTiming[];
   /** Frames the hook clip occupies at the start (0 when no hook). The chat
-   *  timeline in `items` is hook-relative — add this to place it absolutely. */
+   *  timeline in `items` is relative to AFTER hook + app scene — add
+   *  `hookFrames + cantinaAppFrames` to place it absolutely. */
   hookFrames: number;
+  /** Frames the Cantina app scene occupies (0 when disabled). Plays after
+   *  the hook, before the chat. */
+  cantinaAppFrames: number;
 };
 
-export const getMeTypingFrames = (text: string): number =>
+/** Typing pacing for 'me' messages, scaled by the typingSpeed multiplier. */
+export const getMeTypingFrames = (text: string, typingSpeed = 1): number =>
   Math.min(
     ME_MAX_TYPING_FRAMES,
-    Math.max(ME_MIN_TYPING_FRAMES, text.length * ME_FRAMES_PER_CHAR),
+    Math.max(
+      ME_MIN_TYPING_FRAMES,
+      Math.round((text.length * ME_FRAMES_PER_CHAR) / Math.max(typingSpeed, 0.25)),
+    ),
   );
 
 export const getVideoDurationFrames = (durationSec: number): number =>
   Math.round(Math.min(Math.max(durationSec, 1), VIDEO_MAX_SECONDS) * FPS);
 
+/** Seconds of lead-in before the composer appears in the Cantina app scene. */
+export const CANTINA_APP_LEAD_SEC = 0.5;
+/** Seconds the response reveal holds at the end of the Cantina app scene. */
+export const CANTINA_APP_REVEAL_SEC = 1.5;
+
+/** Frames the Cantina app simulation scene occupies (0 when not enabled or
+ *  when there is no video message to "generate"). */
+export const getCantinaAppFrames = (props: ConversationProps): number => {
+  if (!props.cantinaApp) return 0;
+  if (!props.messages.some((m) => m.kind === 'video')) return 0;
+  const sec =
+    CANTINA_APP_LEAD_SEC +
+    (props.cantinaApp.typingSec ?? 3) +
+    (props.cantinaApp.generatingSec ?? 4) +
+    CANTINA_APP_REVEAL_SEC;
+  return Math.round(sec * FPS);
+};
+
 export const getTimeline = (props: ConversationProps): Timeline => {
   const items: MessageTiming[] = [];
+  const typingSpeed = props.typingSpeed ?? 1;
+  const replyDelay = props.replyDelay ?? 1;
+  const themTypingFrames = Math.round(THEM_TYPING_FRAMES * replyDelay);
+  const textHoldFrames = Math.round(TEXT_HOLD_FRAMES * replyDelay);
   let cursor = LEAD_IN;
 
   for (const message of props.messages) {
     if (message.kind === 'text' && message.sender === 'them') {
       const typingStartFrame = cursor;
-      const appearFrame = cursor + THEM_TYPING_FRAMES;
+      const appearFrame = cursor + themTypingFrames;
       items.push({
         id: message.id,
         kind: message.kind,
@@ -96,9 +126,9 @@ export const getTimeline = (props: ConversationProps): Timeline => {
         playFromFrame: null,
         videoDurationFrames: null,
       });
-      cursor = appearFrame + TEXT_HOLD_FRAMES;
+      cursor = appearFrame + textHoldFrames;
     } else if (message.kind === 'text') {
-      const typingFrames = getMeTypingFrames(message.text);
+      const typingFrames = getMeTypingFrames(message.text, typingSpeed);
       const typeStartFrame = cursor;
       const appearFrame = cursor + typingFrames;
       items.push({
@@ -111,7 +141,7 @@ export const getTimeline = (props: ConversationProps): Timeline => {
         playFromFrame: null,
         videoDurationFrames: null,
       });
-      cursor = appearFrame + TEXT_HOLD_FRAMES;
+      cursor = appearFrame + textHoldFrames;
     } else {
       const videoDurationFrames = getVideoDurationFrames(message.durationSec);
       const appearFrame = cursor;
@@ -129,9 +159,11 @@ export const getTimeline = (props: ConversationProps): Timeline => {
     }
   }
 
+  const prefixFrames = getHookFrames(props) + getCantinaAppFrames(props);
   return {
-    totalFrames: getHookFrames(props) + cursor + OUTRO_FRAMES,
+    totalFrames: prefixFrames + cursor + OUTRO_FRAMES,
     items,
     hookFrames: getHookFrames(props),
+    cantinaAppFrames: getCantinaAppFrames(props),
   };
 };

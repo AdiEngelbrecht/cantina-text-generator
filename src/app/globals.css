@@ -1056,3 +1056,81 @@ body {
 .editor-section a:not(.btn):hover {
   color: var(--accent-hover);
 }
+
+/* ---- Contact: avatar + unread stepper ---- */
+
+.avatar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar-preview {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+}
+
+.avatar-placeholder {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px dashed var(--border);
+  background: var(--surface-2);
+}
+
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 3px;
+  gap: 3px;
+}
+
+.stepper-btn {
+  border: none;
+  background: transparent;
+  color: var(--text);
+  width: 34px;
+  height: 30px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+.stepper-btn:hover {
+  background: rgba(46, 230, 168, 0.14);
+}
+
+.stepper-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.stepper-value {
+  min-width: 40px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.stepper-value--dim {
+  color: var(--text-dim);
+}
+
+.stepper-reset {
+  margin-left: 10px;
+  padding: 6px 12px;
+  font-size: 12.5px;
+}

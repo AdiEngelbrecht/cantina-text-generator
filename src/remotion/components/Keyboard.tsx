@@ -16,6 +16,9 @@ export type KeyboardProps = {
   typingStartFrame: number | null;
   /** Total frames over which `typingText` is typed (per-char cadence in timing.ts). */
   typingFrames: number;
+  /** Frames per character; defaults to ME_FRAMES_PER_CHAR. Pass the
+   *  typingSpeed-scaled cadence so typing matches the timeline. */
+  perCharFrames?: number;
 };
 
 type ThemeColors = {
@@ -306,6 +309,7 @@ export const Keyboard: React.FC<KeyboardProps> = ({
   typingText,
   typingStartFrame,
   typingFrames,
+  perCharFrames = ME_FRAMES_PER_CHAR,
 }) => {
   const frame = useCurrentFrame();
   const colors = THEMES[theme];
@@ -315,7 +319,7 @@ export const Keyboard: React.FC<KeyboardProps> = ({
   // Raw character count from the timing contract; may overshoot while the
   // compositor holds before the bubble sends, so clamp for display.
   const rawCount = isTyping
-    ? Math.floor((frame - (typingStartFrame as number)) / ME_FRAMES_PER_CHAR) + 1
+    ? Math.floor((frame - (typingStartFrame as number)) / perCharFrames) + 1
     : 0;
   const withinWindow = isTyping && frame - (typingStartFrame as number) < typingFrames;
   // Reveal per grapheme cluster, not per UTF-16 code unit, so emoji never

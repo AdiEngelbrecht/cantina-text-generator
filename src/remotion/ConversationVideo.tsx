@@ -9,9 +9,9 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from 'remotion';
-import type {ConversationProps, Message} from '../lib/types';
+import type {ConversationProps, Message, VideoMessage} from '../lib/types';
 import type {MessageTiming, Timeline} from '../lib/timing';
-import {getTimeline} from '../lib/timing';
+import {ME_FRAMES_PER_CHAR, getTimeline} from '../lib/timing';
 import {Keyboard} from './components/Keyboard';
 import {StatusBar} from './components/StatusBar';
 import {ChatHeader} from './components/ChatHeader';
@@ -20,12 +20,11 @@ import {TypingIndicator} from './components/TypingIndicator';
 import {VideoBubble} from './components/VideoBubble';
 import {TAPBACK_DELAY} from './components/Tapback';
 import {HookClip} from './components/HookClip';
+import {CantinaAppScene} from './components/CantinaAppScene';
 import {FONT_STACK, getPalette} from './components/theme';
 
 /** Frames after the last `me` bubble lands until the read receipt shows. */
 const READ_RECEIPT_DELAY = 14;
-
-const clockTime = '2:57';
 
 const Entrance: React.FC<{
   localFrame: number;
@@ -70,6 +69,12 @@ const ChatScene: React.FC<{props: ConversationProps; timeline: Timeline}> = ({
   const frame = useCurrentFrame();
   const {fps} = useVideoConfig();
   const palette = getPalette(props.theme);
+  const clockTime = props.clockTime ?? '2:57';
+  const chatSounds = props.chatSounds ?? true;
+  const perCharFrames = Math.max(
+    1,
+    Math.round(ME_FRAMES_PER_CHAR / (props.typingSpeed ?? 1)),
+  );
 
   const messages = props.messages;
   const itemsById = new Map<string, MessageTiming>(
@@ -129,7 +134,8 @@ const ChatScene: React.FC<{props: ConversationProps; timeline: Timeline}> = ({
       <ChatHeader
         theme={props.theme}
         name={props.contactName}
-        count={messages.length}
+        count={props.unreadCount ?? messages.length}
+        avatarSrc={props.avatarSrc}
       />
 
       {/* Message area, anchored to the bottom of the chat zone. */}
@@ -221,14 +227,37 @@ const ChatScene: React.FC<{props: ConversationProps; timeline: Timeline}> = ({
               ? activeTypingItem.appearFrame - (activeTypingItem.typeStartFrame ?? 0)
               : 0
           }
+          perCharFrames={perCharFrames}
         />
       </div>
+
+      {/* iMessage send/receive blips, one per message at its appear frame. */}
+      {chatSounds
+        ? timeline.items.map((item) =>
+            item.appearFrame >= 0 ? (
+              <Sequence key={item.id} from={item.appearFrame}>
+                <Audio
+                  src={staticFile(
+                    item.sender === 'me'
+                      ? 'sounds/imessage-send.wav'
+                      : 'sounds/imessage-receive.wav',
+                  )}
+                  volume={0.5}
+                />
+              </Sequence>
+            ) : null,
+          )
+        : null}
     </AbsoluteFill>
   );
 };
 
 export const ConversationVideo: React.FC<ConversationProps> = (props) => {
   const timeline = getTimeline(props);
+  const chatStartFrame = timeline.hookFrames + timeline.cantinaAppFrames;
+  const videoMessage = props.messages.find(
+    (m): m is VideoMessage => m.kind === 'video',
+  );
 
   return (
     <>
@@ -240,11 +269,26 @@ export const ConversationVideo: React.FC<ConversationProps> = (props) => {
         </Sequence>
       ) : null}
 
-      {/* Chat. The timeline items are hook-relative, so the whole chat layout
-          is shifted by hookFrames; useCurrentFrame() inside ChatScene is local
-          to this Sequence and matches the items directly. When there is no
-          hook, hookFrames is 0 and this Sequence degenerates to the full comp. */}
-      <Sequence from={timeline.hookFrames}>
+      {/* Optional Cantina app simulation scene, after the hook, before the
+          chat. useCurrentFrame() inside is scene-local. */}
+      {props.cantinaApp && videoMessage && timeline.cantinaAppFrames > 0 ? (
+        <Sequence
+          from={timeline.hookFrames}
+          durationInFrames={timeline.cantinaAppFrames}
+        >
+          <CantinaAppScene
+            scene={props.cantinaApp}
+            videoMessage={videoMessage}
+            theme={props.theme}
+          />
+        </Sequence>
+      ) : null}
+
+      {/* Chat. The timeline items are relative to AFTER hook + app scene, so
+          the whole chat layout is shifted by both; useCurrentFrame() inside
+          ChatScene is local to this Sequence and matches the items directly.
+          With neither, both offsets are 0 and this is the full comp. */}
+      <Sequence from={chatStartFrame}>
         <ChatScene props={props} timeline={timeline} />
       </Sequence>
 

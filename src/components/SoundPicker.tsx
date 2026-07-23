@@ -40,7 +40,7 @@ export const SoundPicker: React.FC<Props> = ({sound, onSoundChange}) => {
   return (
     <section className="editor-section">
       <header className="section-header">
-        <span className="section-number">5</span>
+        <span className="section-number">6</span>
         <div>
           <h2>Pick a sound</h2>
           <p>Plays through the whole video from the start, hook included.</p>

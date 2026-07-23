@@ -68,6 +68,7 @@ export const HookSection: React.FC<Props> = ({hook, setHook}) => {
 
   const trimStart = hook?.trimStartSec ?? 0;
   const trimEnd = hook?.trimEndSec ?? hook?.durationSec ?? 0;
+  const zoom = hook?.zoom ?? 1;
 
   useEffect(() => {
     let cancelled = false;
@@ -245,6 +246,26 @@ export const HookSection: React.FC<Props> = ({hook, setHook}) => {
               >
                 Reset
               </button>
+            </div>
+          </div>
+
+          <label className="field-label">Zoom</label>
+          <div className="hook-trim">
+            <div className="hook-trim-row">
+              <span className="hook-trim-label">Zoom</span>
+              <input
+                type="range"
+                className="hook-trim-slider"
+                min={1}
+                max={1.5}
+                step={0.01}
+                value={zoom}
+                onChange={(e) => {
+                  const v = clamp(parseFloat(e.target.value) || 1, 1, 1.5);
+                  setHook({...hook, zoom: round2(v)});
+                }}
+              />
+              <span className="hook-trim-value">{zoom.toFixed(2)}×</span>
             </div>
           </div>
         </>

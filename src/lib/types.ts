@@ -59,6 +59,18 @@ export type HookClip = {
    */
   trimStartSec?: number;
   trimEndSec?: number;
+  /** Slow zoom target (Ken Burns) over the hook, 1–1.5. Default 1 (no zoom). */
+  zoom?: number;
+};
+
+/** Optional Cantina app simulation scene, shown between the hook and the chat. */
+export type CantinaAppSceneProps = {
+  /** The prompt typed into the Cantina app composer. */
+  prompt: string;
+  /** Seconds the prompt takes to type out. Default 3. */
+  typingSec?: number;
+  /** Seconds the Generating modal shows. Default 4. */
+  generatingSec?: number;
 };
 
 /** Root props for the `ConversationVideo` composition and the render API. */
@@ -70,6 +82,20 @@ export type ConversationProps = {
   theme: VideoTheme;
   /** Optional hook clip shown before the conversation. */
   hook?: HookClip;
+  /** Optional Cantina app simulation scene, after the hook, before the chat. */
+  cantinaApp?: CantinaAppSceneProps;
+  /** Contact avatar image (object URL or static path) for the chat header. */
+  avatarSrc?: string;
+  /** Status-bar clock and read-receipt time. Default '2:57'. */
+  clockTime?: string;
+  /** Back-button unread count. Default: message count. */
+  unreadCount?: number;
+  /** Typing speed multiplier for 'me' messages (0.5–2, default 1). */
+  typingSpeed?: number;
+  /** Reply pacing multiplier for 'them' messages (0.5–2, default 1). */
+  replyDelay?: number;
+  /** iMessage send/receive blips on each message. Default true. */
+  chatSounds?: boolean;
 };
 
 export const DEFAULT_PROPS: ConversationProps = {

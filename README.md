@@ -11,15 +11,15 @@ npm run dev
 
 Open http://localhost:3000.
 
-## Making a clip (5 steps)
+## Making a clip (7 steps)
 
-1. **Upload your Cantina clip** — the response video you made in the Cantina app. It will appear inside the chat as a video message bubble.
-2. **Add a hook video (optional)** — a crying/reaction clip that plays before the chat. Source clips from the [crying hooks Drive folder](https://drive.google.com/drive/folders/1suQPzPFb0i_6ATiABZsLOCMG2-AYYJqn?usp=sharing), caption in CapCut first (captions look better that way), then pick it from the `public/hooks` library or upload it, and trim it here.
-3. **Write the fake conversation** — type the messages, pick a preset to start from, or mix both. Blue bubbles on the right are "me", gray bubbles on the left are "them". The video message always comes from "them".
-4. **Set the contact name** — who's it from: Mom, Dad, Grandma... it shows in the chat header with their avatar.
-5. **Pick the sound** — Gymnopédie Piano, the viral TikTok audio. It plays as the soundtrack through the whole video from the start, hook included (or choose None).
-
-Watch the live preview, hit **Render**, and download your mp4.
+1. **Upload your Cantina clip** — the response video you made in the Cantina app. It appears inside the chat as a video message bubble. Keep "Play Cantina app scene" checked to open the video with the fake Cantina app: the clip pops into the composer, your prompt types out, and the Generating modal plays before the reveal.
+2. **Add a hook video (optional)** — a crying/reaction clip that plays before everything. Source clips from the [crying hooks Drive folder](https://drive.google.com/drive/folders/1suQPzPFb0i_6ATiABZsLOCMG2-AYYJqn?usp=sharing), caption in CapCut first (captions look better that way), then pick it from the `public/hooks` library or upload it. Trim it and add a slow Ken Burns zoom here.
+3. **Write the fake conversation** — build it in the chat canvas (drag bubbles to reorder, tapback reactions, emoji), pick a preset, or flip to **Paste script** and drop a whole script at once: `me: ...` / `them: ...` per line, `react: ❤️` to react to the previous message, `[video]` where the Cantina clip goes.
+4. **Set the contact** — name, avatar photo (optional), the clock time on the phone, and the unread count on the back button.
+5. **Timing & chat sounds** — how fast "you" type, how slow "they" reply, and whether the iMessage send/receive blips play.
+6. **Pick the sound** — Gymnopédie Piano, the viral TikTok audio. It plays as the soundtrack through the whole video from the start, hook included (or choose None).
+7. **Render** — watch the live preview, hit Render, and the mp4 is created right in your browser and saved to your device.
 
 ### TikTok boost tip
 

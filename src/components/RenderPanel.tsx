@@ -100,7 +100,7 @@ export const RenderPanel: React.FC<Props> = ({props}) => {
   return (
     <section className="editor-section render-panel">
       <header className="section-header">
-        <span className="section-number">6</span>
+        <span className="section-number">7</span>
         <div>
           <h2>Render</h2>
           <p>Export the final 1080×1920 MP4 — rendered in your browser.</p>

@@ -1,6 +1,8 @@
 import React from 'react';
+import {Img} from 'remotion';
 import type {VideoTheme} from '../../lib/types';
 import {FONT_STACK, IOS_BLUE, getPalette} from './theme';
+import {resolveMediaSrc} from './media';
 
 const BackChevron: React.FC = () => (
   <svg width="28" height="50" viewBox="0 0 28 50">
@@ -23,14 +25,17 @@ const VideoCameraIcon: React.FC = () => (
 );
 
 /**
- * iOS Messages chat header: back chevron + count on the left,
+ * iOS Messages chat header: back chevron + unread count on the left,
  * centered avatar with the contact name underneath, video icon right.
+ * When `avatarSrc` is set, the avatar shows that image instead of the
+ * initial-on-gradient placeholder.
  */
 export const ChatHeader: React.FC<{
   theme: VideoTheme;
   name: string;
   count: number;
-}> = ({theme, name, count}) => {
+  avatarSrc?: string;
+}> = ({theme, name, count, avatarSrc}) => {
   const palette = getPalette(theme);
   const initial = (name.trim()[0] ?? '?').toUpperCase();
   return (
@@ -77,11 +82,19 @@ export const ChatHeader: React.FC<{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            overflow: 'hidden',
           }}
         >
-          <span style={{fontSize: 50, fontWeight: 500, color: '#FFFFFF'}}>
-            {initial}
-          </span>
+          {avatarSrc ? (
+            <Img
+              src={resolveMediaSrc(avatarSrc)}
+              style={{width: '100%', height: '100%', objectFit: 'cover'}}
+            />
+          ) : (
+            <span style={{fontSize: 50, fontWeight: 500, color: '#FFFFFF'}}>
+              {initial}
+            </span>
+          )}
         </div>
         <div
           style={{

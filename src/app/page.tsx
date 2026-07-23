@@ -3,7 +3,6 @@
 import React, {useCallback, useReducer} from 'react';
 import {
   DEFAULT_PROPS,
-  type CantinaAppSceneProps,
   type ConversationProps,
   type HookClip,
   type MediaSlot,
@@ -40,7 +39,6 @@ type Action =
   | {type: 'setMediaSlot'; n: number; slot: MediaSlot | undefined}
   | {type: 'setClockTime'; time: string | undefined}
   | {type: 'setUnreadCount'; n: number | undefined}
-  | {type: 'setCantinaApp'; scene: CantinaAppSceneProps | undefined}
   | {
       type: 'setTiming';
       patch: {typingSpeed?: number; replyDelay?: number; chatSounds?: boolean};
@@ -169,8 +167,6 @@ const reducer = (state: ConversationProps, action: Action): ConversationProps =>
       return {...state, clockTime: action.time};
     case 'setUnreadCount':
       return {...state, unreadCount: action.n};
-    case 'setCantinaApp':
-      return {...state, cantinaApp: action.scene};
     case 'setTiming':
       return {...state, ...action.patch};
     case 'setVideo': {
@@ -250,14 +246,7 @@ export default function Home() {
 
       <div className="page-grid">
         <div className="editor-column">
-          <UploadSection
-            onVideoReady={handleVideoReady}
-            hasVideo={hasVideo}
-            cantinaApp={props.cantinaApp}
-            onCantinaAppChange={(scene) =>
-              dispatch({type: 'setCantinaApp', scene})
-            }
-          />
+          <UploadSection onVideoReady={handleVideoReady} hasVideo={hasVideo} />
 
           <HookSection
             hook={props.hook}

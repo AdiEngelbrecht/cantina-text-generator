@@ -98,19 +98,6 @@ export type HookClip = {
   zoom?: number;
 };
 
-/** Optional Cantina app simulation scene, shown between the hook and the chat. */
-export type CantinaAppSceneProps = {
-  /** The prompt typed into the Cantina app composer. */
-  prompt: string;
-  /** Seconds the prompt takes to type out. Default 3. */
-  typingSec?: number;
-  /** Seconds the Generating modal shows. Default 4. */
-  generatingSec?: number;
-  /** Optional Cantina character image shown in the composer (object URL or
-   *  static path). Falls back to the response clip's own thumbnail. */
-  characterSrc?: string;
-};
-
 /** Root props for the `ConversationVideo` composition and the render API. */
 export type ConversationProps = {
   contactName: string;
@@ -120,8 +107,6 @@ export type ConversationProps = {
   theme: VideoTheme;
   /** Optional hook clip shown before the conversation. */
   hook?: HookClip;
-  /** Optional Cantina app simulation scene, after the hook, before the chat. */
-  cantinaApp?: CantinaAppSceneProps;
   /** Contact avatar image (object URL or static path) for the chat header. */
   avatarSrc?: string;
   /** Memoji preset avatar: emoji glyph on a colored circle. Overrides avatarSrc. */

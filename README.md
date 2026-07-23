@@ -13,7 +13,7 @@ Open http://localhost:3000.
 
 ## Making a clip (7 steps)
 
-1. **Upload your Cantina clip** — the response video you made in the Cantina app. It appears inside the chat as a video message bubble. Keep "Play Cantina app scene" checked to open the video with the fake Cantina app: the clip pops into the composer, your prompt types out, and the Generating modal plays before the reveal.
+1. **Upload your Cantina clip** — the response video you made in the Cantina app. It appears inside the chat as a video message bubble.
 2. **Add a hook (optional)** — a crying/reaction clip or a still photo that plays before everything. Source clips from the [crying hooks Drive folder](https://drive.google.com/drive/folders/1suQPzPFb0i_6ATiABZsLOCMG2-AYYJqn?usp=sharing), caption in CapCut first (captions look better that way), then pick from the `public/hooks` library or upload. Trim it, set auto or custom duration, and add a slow Ken Burns zoom.
 3. **Write the fake conversation** — build it in the chat canvas (drag bubbles to reorder, tapback reactions, emoji), pick a preset, or flip to **Paste script** and drop a whole script at once: `me: ...` / `them: ...` per line, `react: ❤️` to react to the previous message, `[video]` where the Cantina clip goes, and `[photo1]`–`[photo10]` (optionally `[photo3:me]`) to drop in uploaded photos *or* extra videos from the slot grid. Photos land as image bubbles; extra videos play in-chat and the convo waits.
 4. **Set the contact** — name, an avatar photo or a tap-to-set memoji, the clock time on the phone (drives the status bar, "Today" day stamp and Read receipts), and the unread count on the back button.

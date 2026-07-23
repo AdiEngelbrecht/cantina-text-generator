@@ -74,12 +74,8 @@ export type Timeline = {
   totalFrames: number;
   items: MessageTiming[];
   /** Frames the hook clip occupies at the start (0 when no hook). The chat
-   *  timeline in `items` is relative to AFTER hook + app scene — add
-   *  `hookFrames + cantinaAppFrames` to place it absolutely. */
+   *  timeline in `items` is hook-relative — add this to place it absolutely. */
   hookFrames: number;
-  /** Frames the Cantina app scene occupies (0 when disabled). Plays after
-   *  the hook, before the chat. */
-  cantinaAppFrames: number;
 };
 
 /** Typing pacing for 'me' messages, scaled by the typingSpeed multiplier. */
@@ -94,24 +90,6 @@ export const getMeTypingFrames = (text: string, typingSpeed = 1): number =>
 
 export const getVideoDurationFrames = (durationSec: number): number =>
   Math.round(Math.min(Math.max(durationSec, 1), VIDEO_MAX_SECONDS) * FPS);
-
-/** Seconds of lead-in before the composer appears in the Cantina app scene. */
-export const CANTINA_APP_LEAD_SEC = 0.5;
-/** Seconds the response reveal holds at the end of the Cantina app scene. */
-export const CANTINA_APP_REVEAL_SEC = 1.5;
-
-/** Frames the Cantina app simulation scene occupies (0 when not enabled or
- *  when there is no video message to "generate"). */
-export const getCantinaAppFrames = (props: ConversationProps): number => {
-  if (!props.cantinaApp) return 0;
-  if (!props.messages.some((m) => m.kind === 'video')) return 0;
-  const sec =
-    CANTINA_APP_LEAD_SEC +
-    (props.cantinaApp.typingSec ?? 3) +
-    (props.cantinaApp.generatingSec ?? 4) +
-    CANTINA_APP_REVEAL_SEC;
-  return Math.round(sec * FPS);
-};
 
 export const getTimeline = (props: ConversationProps): Timeline => {
   const items: MessageTiming[] = [];
@@ -197,11 +175,10 @@ export const getTimeline = (props: ConversationProps): Timeline => {
     }
   }
 
-  const prefixFrames = getHookFrames(props) + getCantinaAppFrames(props);
+  const prefixFrames = getHookFrames(props);
   return {
     totalFrames: prefixFrames + cursor + OUTRO_FRAMES,
     items,
     hookFrames: getHookFrames(props),
-    cantinaAppFrames: getCantinaAppFrames(props),
   };
 };
